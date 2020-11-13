@@ -4,7 +4,6 @@ from pandas_datareader import data as wb
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 st = int(input("enter no. of stocks:- \n "))
 assets = []
 for i in range(0, st):
