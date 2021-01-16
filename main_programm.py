@@ -71,40 +71,49 @@ class PortfolioOptimization(object):
         plt.title("Volatility vs return")
         plt.show()
 
-    def weight_optimized_pft(self):
+    def weight_optimized_pft(self, show = False):
         self.portfolio_simulation(show=False)
 
         new_weights = self.all_weights[self.sharpe_array.argmax(), :] * 100
-        for i in range(self.num_stocks):
-            print("Weight of {:<15} is {:<6} % ".format(self.stock_list[i], round(new_weights[i], 2)))
+        if show:
+            for i in range(self.num_stocks):
+                print("Weight of {:<15} is {:<6} % ".format(self.stock_list[i], round(new_weights[i], 2)))
 
-    def final_result(self, plot = False):
+    def final_result(self, plot=False, show=True):
         if plot:
             self.plot()
 
         self.weight_optimized_pft()
 
         new_weights = self.all_weights[self.sharpe_array.argmax(), :] * 100
-        ret = np.sum(self.log_returns.mean() * new_weights) * 250
-        vol = np.sqrt(np.dot(new_weights.T, np.dot(self.log_returns.cov() * 250, new_weights)))
+        portfolio_returns = np.sum(self.log_returns.mean() * new_weights) * 250
+        portfolio_volatility = np.sqrt(np.dot(new_weights.T, np.dot(self.log_returns.cov() * 250, new_weights)))
 
-        sr = ret / vol
+        max_sharpe = portfolio_returns / portfolio_volatility
         equal_weight = 1 / self.num_stocks
         equal_weights_list = []
         for i in range(self.num_stocks):
             equal_weights_list.append(equal_weight)
 
         ret_equal = np.sum(equal_weights_list * self.log_returns.mean()) * 250
-        voltis = np.sqrt(np.dot(equal_weights_list, np.dot(self.log_returns.cov() * 250, equal_weights_list)))
+        volatility_equal = np.sqrt(np.dot(equal_weights_list, np.dot(self.log_returns.cov() * 250, equal_weights_list)))
 
-        print("\n The EXPECTED return is {} %".format(round(ret, 2)))
-        print("\n The EXPECTED volatility is {} %".format(round(vol, 2)))
-        print("\n The MAX sharpe ratio is {} \n ".format(round(sr, 2)))
+        result_dict = {'expect_return': round(portfolio_returns, 2),
+                       'expect_volatility': round(portfolio_volatility, 2), 'max_sharpe': round(max_sharpe, 2),
+                       'equal_portfolio_return': round(ret_equal * 100, 2),
+                       'equal_portfolio_volatility': round(volatility_equal * 100, 2)}
 
-        print("The return if All the STOCKS have equal Weightage is {}  % \n ".format(round(ret_equal * 100, 2)))
-        print("The Volatility if All the STOCKS have equal Weightage is {} % \n ".format(round(voltis * 100, 2)))
+        if show:
+            print("\n The EXPECTED return is {} %".format(round(portfolio_returns, 2)))
+            print("\n The EXPECTED volatility is {} %".format(round(portfolio_volatility, 2)))
+            print("\n The MAX sharpe ratio is {} \n ".format(round(max_sharpe, 2)))
+
+            print("The return if All the STOCKS have equal Weightage is {}  % \n ".format(round(ret_equal * 100, 2)))
+            print("The Volatility if All the STOCKS have equal Weightage is {} % \n ".format(round(volatility_equal * 100, 2)))
+
+        return result_dict
 
 
 if __name__ == '__main__':
     t = PortfolioOptimization()
-    t.final_result()
+    print(t.final_result(show=False))
