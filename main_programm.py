@@ -34,7 +34,7 @@ class PortfolioOptimization(object):
     def portfolio_simulation(self, num_ports=1000, show = True):
         self.log_returns()
 
-        num_ports = 1000
+        num_ports = 3000
         self.pfolio_returns = []
         self.pfolio_volatilities = []
         self.all_weights = np.zeros((num_ports, self.num_stocks))
@@ -71,19 +71,37 @@ class PortfolioOptimization(object):
         plt.title("Volatility vs return")
         plt.show()
 
-    def weight_optimized_pft(self, show = False):
+    def weight_optimized_pft(self, show = True):
         self.portfolio_simulation(show=False)
 
         new_weights = self.all_weights[self.sharpe_array.argmax(), :] * 100
+        new_weights = np.round(new_weights, 2)
+        # making data frame
+
+        dict = {'Ticker': self.stock_list, 'Weight (%)': new_weights}
+
+        self.portfolio_data = pd.DataFrame(dict)
+
         if show:
             for i in range(self.num_stocks):
                 print("Weight of {:<15} is {:<6} % ".format(self.stock_list[i], round(new_weights[i], 2)))
+
+    def pie_plot(self):
+        self.weight_optimized_pft(show=False)
+
+        data = self.portfolio_data
+        sum_data = data.groupby("Ticker")["Weight (%)"].sum()
+        sum_data.plot.pie(autopct = "%.1f%%", explode=[0.05]*len(self.stock_list), labels=sum_data.keys(), pctdistance=0.5)
+        plt.title("Portfolio Distribution", fontsize=14)
+        plt.show()
+
+
 
     def final_result(self, plot=False, show=True):
         if plot:
             self.plot()
 
-        self.weight_optimized_pft()
+        self.weight_optimized_pft(show=False)
 
         new_weights = self.all_weights[self.sharpe_array.argmax(), :] * 100
         portfolio_returns = np.sum(self.log_returns.mean() * new_weights) * 250
@@ -116,4 +134,3 @@ class PortfolioOptimization(object):
 
 if __name__ == '__main__':
     t = PortfolioOptimization()
-    print(t.final_result(show=False))
